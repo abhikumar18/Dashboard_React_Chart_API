@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {Chart as ChartJS, BarElement, CategoryScale, LinearScale} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
@@ -10,12 +10,42 @@ ChartJS.register(
 
 const BarChart = () => {
 
+    const [chart,setChart] = useState([]);
+
+    var baseUrl = "https://api.coinranking.com/v2/coins/?limit=10";
+    var proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    var apiKey = "coinranking9e03f155d9f5ba1b968e285e135d3ab41cf12a7a73264fda";
+
+    useEffect(() => {
+        const fetchCoins = async () => {
+          await fetch(`${proxyUrl}${baseUrl}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-access-token': `${apiKey}`,
+              'Access-Control-Allow-Origin': "*"
+            }
+          })
+            .then((response) => {
+              if (response.ok) {
+                response.json().then((json) => {
+                  console.log(json.data);
+                  setChart(json.data)
+                });
+              }
+            }).catch((error) => {
+              console.log(error);
+            });
+        };
+        fetchCoins()
+      }, [baseUrl, proxyUrl, apiKey])
+
     var data = 
     {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        labels: chart?.coins?.map(item=>item.name),
         datasets: [{
-          label: '# of Votes',
-          data: [12, 19, 3, 5, 2, 3],
+          label: `${chart?.coins?.length} Coins Available`,
+          data: chart?.coins?.map(item=>item.price),
           borderWidth: 2
         }]
     };
